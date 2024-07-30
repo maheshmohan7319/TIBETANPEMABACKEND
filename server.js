@@ -3,10 +3,6 @@ const express = require('express');
 const connectDB = require('./config/db');
 const dotenv = require('dotenv');
 const cors = require("cors");
-const axios = require('axios');
-const crypto = require('crypto');
-const uniqid = require("uniqid");
-
 
 const PORT = process.env.PORT || 5000;
 
