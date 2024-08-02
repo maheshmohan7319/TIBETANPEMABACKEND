@@ -35,6 +35,7 @@ app.use('/api/purchase', purchaseRoutes);
 app.use('/api/cart', cartRoutes);
 app.use('/api', productHelperRoutes);
 app.use('/api/addresses', addressRoutes);
+app.use('/api/payment', paymentRoutes);
 
 
 
