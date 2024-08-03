@@ -3,7 +3,8 @@ const router = express.Router();
 const paymentController = require('../controllers/paymentController');
 const { validatePaymentRequest } = require('../middleware/payment');
 
-router.post('/Pay', paymentController.processPayment);
-router.post('/Status', paymentController.processPaymentStatus);
+router.post('/pay', paymentController.initiatePayment);
+router.post('/paystatus', paymentController.paymentCallback);
+router.get('/status/:transactionId', paymentController.getPaymentStatus);
 
 module.exports = router;
