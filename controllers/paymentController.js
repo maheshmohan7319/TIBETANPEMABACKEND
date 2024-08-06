@@ -46,75 +46,11 @@ exports.initiatePayment = async (req, res) => {
   }
 };
 
-exports.paymentCallback = async (req, res) => {
-  try {
-    // Log the incoming request body for debugging
-    console.log('Request Body:', req.body.response);
 
-    // Extract the response and the X-VERIFY header
-    const responseBase64 = req.body.response;
-    const xVerifyHeader = req.headers['x-verify'];
-
-    if (!responseBase64) {
-      return res.status(400).json({ message: 'Invalid request: missing response data' });
-    }
-
-    // Decode the base64 response
-    let responseJson;
-    try {
-      responseJson = Buffer.from(responseBase64, 'base64').toString('utf8');
-    } catch (err) {
-      return res.status(400).json({ message: 'Invalid base64 encoding' });
-    }
-
-    let response;
-    try {
-      response = JSON.parse(responseJson);
-    } catch (err) {
-      return res.status(400).json({ message: 'Invalid JSON format' });
-    }
-
-    // Your salt key and salt index
-    const saltKey = process.env.NEXT_API_MERCHANT_KEY;
-    const saltIndex = process.env.NEXT_API_MERCHANT_VERSION;
-
-    // Compute the expected verification hash
-    const expectedHash = crypto
-      .createHash('sha256')
-      .update(responseBase64 + saltKey)
-      .digest('hex');
-
-    // Compare the computed hash with the X-VERIFY header
-    const expectedVerify = expectedHash + '###' + saltIndex;
-    if (xVerifyHeader !== expectedVerify) {
-      // Handle verification failure
-      return res.status(400).json({ message: 'Verification failed' });
-    }
-
-    // Process the response
-    if (response.success) {
-      // Payment was successful
-      console.log('Payment Success:', response.data);
-      // Update your order status, notify user, etc.
-    } else {
-      // Payment failed
-      console.log('Payment Failed:', response.data);
-      // Handle payment failure, notify user, etc.
-    }
-
-    // Send a response to acknowledge the callback
-    res.status(200).json({ message: 'Callback received' });
-  } catch (error) {
-    console.error('Error handling paystatus callback:', error);
-    res.status(500).json({ message: 'Internal server error' });
-  }
-};
 
 exports.getPaymentStatus = async (req, res) => {
   try {
     const transactionId  = req.params.transactionId;
-    console.log(transactionId);
-    
 
     const st = `/pg/v1/status/${process.env.NEXT_API_MERCHANT_ID}/${transactionId}${process.env.NEXT_API_MERCHANT_KEY}`;
     const dataSha256 = crypto.SHA256(st).toString();
