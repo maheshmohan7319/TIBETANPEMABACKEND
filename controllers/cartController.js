@@ -46,6 +46,7 @@ exports.addItemToCart = async (req, res) => {
 
 exports.getCart = async (req, res) => {
     const userId = req.user.user.id;
+    const isCart = req.query.isCart === 'true'; 
 
     try {
         const cart = await Cart.findOne({ userId }).populate('items.productId');
@@ -58,8 +59,6 @@ exports.getCart = async (req, res) => {
         let totalSGST = 0;
         let totalCGST = 0;
         let netAmount = 0;
-
-        const user = await User.findById(userId);
 
         const items = cart.items.map(item => {
             const product = item.productId;
@@ -76,13 +75,10 @@ exports.getCart = async (req, res) => {
                 productId: product._id,
                 productName: product.name,
                 quantity: item.quantity,
-                size: item.size,
-                color: item.color,
                 itemTotal: itemTotal.toFixed(2),
                 sgst: sgst.toFixed(2),
                 cgst: cgst.toFixed(2),
-                productImage: product.images && product.images.length > 0 ? product.images[0] : null,
-                isFavorite: user.favorites.includes(product._id)
+                productImage: product.image || null,
             };
         });
 
@@ -94,8 +90,41 @@ exports.getCart = async (req, res) => {
         const roundedTotalSGST = totalSGST.toFixed(2);
         const roundedTotalCGST = totalCGST.toFixed(2);
 
-        const address = await Address.findOne({ userId, isDefault: true });
+        if (!isCart) {
+            const address = await Address.findOne({ userId, isDefault: true });
+            if (!address) {
+                return res.status(404).json({ status: false, message: 'Default address not found' });
+            }
 
+            const storeLatitude = 40.7128; 
+            const storeLongitude = -74.0060;
+
+            const distance = calculateDistance(
+                storeLatitude,
+                storeLongitude,
+                address.latitude,
+                address.longitude
+            );
+
+            const deliveryRatePerKm = 5;
+            const deliveryCharge = Math.round(distance * deliveryRatePerKm);
+
+            return res.json({
+                status: true,
+                message: 'Cart retrieved successfully',
+                cart: {
+                    userId: cart.userId,
+                    items: items,
+                },
+                grossTotal: roundedGrossTotal,
+                totalTaxAmount: roundedTotalTaxAmount,
+                netAmount: roundedNetAmount,
+                totalSGST: roundedTotalSGST,
+                totalCGST: roundedTotalCGST,
+                deliveryCharge: deliveryCharge,
+                defaultAddress: address
+            });
+        }
         res.json({
             status: true,
             message: 'Cart retrieved successfully',
@@ -107,14 +136,14 @@ exports.getCart = async (req, res) => {
             totalTaxAmount: roundedTotalTaxAmount,
             netAmount: roundedNetAmount,
             totalSGST: roundedTotalSGST,
-            totalCGST: roundedTotalCGST,
-            defaultAddress: address ? address : 'No default address found'
+            totalCGST: roundedTotalCGST
         });
     } catch (err) {
         console.error(err);
         res.status(500).json({ status: false, message: 'Internal server error' });
     }
 };
+
 
 exports.getCartByProductId = async (req, res) => {
     try {

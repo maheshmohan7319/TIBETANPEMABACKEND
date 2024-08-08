@@ -14,6 +14,8 @@ const cartRoutes = require('./routes/cartRoutes');
 const productHelperRoutes = require('./routes/productHelperRoutes');
 const addressRoutes = require('./routes/addressRoutes');
 const paymentRoutes = require('./routes/paymentRoutes');
+const otpRoutes = require('./routes/otpRoutes');
+const companyRoutes = require('./routes/companyRoutes');
 
 
 
@@ -36,9 +38,11 @@ app.use('/api/cart', cartRoutes);
 app.use('/api', productHelperRoutes);
 app.use('/api/addresses', addressRoutes);
 app.use('/api/payment', paymentRoutes);
+app.use('/api/otp', otpRoutes);
+app.use('/api/company', companyRoutes);
 
 
 
 
 
-app.listen(PORT, () => console.log(`Server running on port ${PORT}`));
+app.listen(PORT, () => console.log(`Server running at http://localhost:${PORT}`));

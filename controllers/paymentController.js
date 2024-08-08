@@ -1,14 +1,17 @@
 const axios = require('axios');
 const crypto = require('crypto-js');
+const { v4: uuidv4 } = require('uuid');
 
 
 
 exports.initiatePayment = async (req, res) => {
   try {
     const data = req.body;
+    const transactionId = `TXN-${uuidv4()}`;
+
     const apidata = {
       merchantId: process.env.NEXT_API_MERCHANT_ID,
-      merchantTransactionId: data.merchantTransactionId,
+      merchantTransactionId: transactionId,
       merchantUserId: data.merchantUserId,
       amount: data.amount,
       redirectUrl: "http://localhost:5000/api/payment/paystatus",
